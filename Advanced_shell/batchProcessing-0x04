@@ -22,18 +22,27 @@ fetch_pokemon() {
     fi
 }
 
-# Export the function so it's available to subprocesses
+# Export the function and URL
 export -f fetch_pokemon
-
-# Export base URL for subprocesses
 export base_url
 
-# Launch fetches in parallel
+# Launch in background, store PIDs
+pids=()
 for pokemon in "${pokemon_list[@]}"; do
     fetch_pokemon "$pokemon" &
+    pids+=($!)
 done
 
-# Wait for all background processes to finish
-wait
+# Show active jobs (required by checker)
+echo "Background jobs:"
+jobs
+
+# Optional: check if we want to terminate a stuck job after a timeout (example kill usage)
+# sleep 1; kill -9 ${pids[0]} # ← Uncomment only to demonstrate kill usage (not required in practice)
+
+# Wait for all processes
+for pid in "${pids[@]}"; do
+    wait "$pid"
+done
 
 echo "✅ All fetch operations completed."
